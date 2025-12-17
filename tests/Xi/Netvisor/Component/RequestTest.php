@@ -10,6 +10,46 @@ use GuzzleHttp\Client;
 class RequestTest extends \PHPUnit_Framework_TestCase
 {
     /**
+     * @test
+     * Verify HMACSHA256 MAC calculation matches documented example
+     */
+    public function hmacsha256CalculationMatchesDocumentedExample()
+    {
+        // Values from Netvisor API documentation
+        $url = 'https://isvapi.netvisor.fi/accounting.nv';
+        $sender = 'ClientName';
+        $customerId = 'Integration user identifier';
+        $timestamp = '2023-05-04 12:00:00.000';
+        $language = 'FI';
+        $organisationId = '1967543-8';
+        $transactionId = '123456';
+        $timestampUnix = '1683147600';
+        $customerKey = '7cd680e89e880553358bc07cd28b0ee2';
+        $partnerKey = '7f94228d149a96b2f25e3edad55096e';
+
+        $parameters = array(
+            $url,
+            $sender,
+            $customerId,
+            $timestamp,
+            $language,
+            $organisationId,
+            $transactionId,
+            $timestampUnix,
+            $customerKey,
+            $partnerKey,
+        );
+
+        $key = implode('&', array($customerKey, $partnerKey));
+        $mac = hash_hmac('sha256', implode('&', $parameters), $key);
+
+        // Expected value from Netvisor documentation
+        $expectedMac = '86b8f6510744913deab32da404d7668eba2a75775b3ac78c9c48bca65e0fbd27';
+
+        $this->assertEquals($expectedMac, $mac);
+    }
+
+    /**
      * @var Request
      */
     private $request;
